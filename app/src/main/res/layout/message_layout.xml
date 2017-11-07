@@ -20,7 +20,7 @@
 
 
             <TextView
-                android:id="@+id/message"
+                android:id="@+id/messageChat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
@@ -34,7 +34,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:layout_alignStart="@+id/message"
+                android:layout_alignStart="@+id/messageChat"
                 android:layout_marginBottom="12dp"
                 android:text="username" />
 
@@ -48,15 +48,15 @@
                 android:layout_marginEnd="101dp"
                 android:text="time" />
 
-            <ImageView
-                android:id="@+id/imageView"
+            <Button
+                android:id="@+id/deleteButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_alignParentEnd="true"
-                android:layout_alignTop="@+id/message"
-                android:layout_marginEnd="13dp"
-                android:visibility="invisible"
-                app:srcCompat="@drawable/delete" />
+                android:layout_alignTop="@+id/messageChat"
+                android:layout_marginEnd="30dp"
+                android:background="@mipmap/delete"
+                android:visibility="invisible"/>
 
         </RelativeLayout>
     </android.support.v7.widget.CardView>

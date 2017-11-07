@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/ChatRoomApp.iml" filepath="$PROJECT_DIR$/ChatRoomApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ChatRoomApp-master.iml" filepath="$PROJECT_DIR$/ChatRoomApp-master.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

@@ -52,18 +52,18 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_alignBottom="@+id/newthread"
-        android:layout_alignStart="@+id/button"
+        android:layout_alignStart="@+id/logoutButton"
         android:background="@drawable/add"
         />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/logoutButton"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_alignBottom="@+id/textView2"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="31dp"
-        android:background="@drawable/home" />
+        android:background="@mipmap/logout" />
 </RelativeLayout>
 
 </FrameLayout>

@@ -1,15 +1,19 @@
+/*Assignment Inclass09
+Yash Ghia
+Prabhakar Teja Seeda
+*/
+
 package com.example.teja.inclass09;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -32,7 +36,6 @@ import java.util.Date;
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder>{
     static ArrayList<Message> messagesArrayList;
     static Fragment fragment;
-    static AlertDialog.Builder builder;
     static int pos;
     static IdeletedMessage ideletedMessage;
 
@@ -66,7 +69,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         holder.timeTextView.setText(p.format(date));
         user = getSharedValues();
         if(user.getUser_id().equalsIgnoreCase(message.getUser_id())){
-            holder.deleteImageView.setVisibility(View.VISIBLE);
+            holder.deleteButton.setVisibility(View.VISIBLE);
         }
 
     }
@@ -77,26 +80,31 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         TextView messageTextView, nameTextView,timeTextView;
-        ImageView deleteImageView;
+        Button deleteButton;
         static Message details;
         public ViewHolder(View itemView) {
             super(itemView);
-            messageTextView = (TextView) itemView.findViewById(R.id.message);
+            messageTextView = (TextView) itemView.findViewById(R.id.messageChat);
             nameTextView = (TextView) itemView.findViewById(R.id.username);
             timeTextView = (TextView) itemView.findViewById(R.id.time);
-            deleteImageView = (ImageView) itemView.findViewById(R.id.imageView);
-            deleteImageView.setOnClickListener(new View.OnClickListener() {
+            deleteButton = (Button) itemView.findViewById(R.id.deleteButton);
+            deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Log.d("deleteMessage","delete button clicked");
+                    Message m = new Message();
                     pos = getAdapterPosition();
+                    Log.d("position","Pos :"+pos);
+                    m = messagesArrayList.get(pos);
+                    Log.d("message","message :"+m.getMessage());
                     messagesArrayList.remove(pos);
-                    ideletedMessage.deletedMessageRefresh(messagesArrayList);
+                    ideletedMessage.deletedMessageRefresh(m);
                 }
             });
         }
     }
     interface IdeletedMessage{
-        void deletedMessageRefresh(ArrayList<Message> messages);
+        void deletedMessageRefresh(Message message);
     }
 
     public User getSharedValues(){

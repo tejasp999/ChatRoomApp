@@ -1,3 +1,8 @@
+/*Assignment Inclass09
+Yash Ghia
+Prabhakar Teja Seeda
+*/
+
 package com.example.teja.inclass09;
 
 import android.app.Fragment;
@@ -27,11 +32,14 @@ public class ThreadAdapter extends RecyclerView.Adapter<ThreadAdapter.ViewHolder
     static ArrayList<ThreadClass> threadResults;
     static Context context;
     static Fragment fragment;
+    static int pos;
+    static IDeleteThread deleteThread;
     //IselectedInstructor inst;
-    public ThreadAdapter(ArrayList<ThreadClass> results, Context context, Fragment fragment) {
+    public ThreadAdapter(ArrayList<ThreadClass> results, Context context, Fragment fragment, IDeleteThread deleteThread) {
         this.threadResults = results;
         this.context = context;
         this.fragment = fragment;
+        this.deleteThread = deleteThread;
         //this.inst = iselectedInstructor;
     }
     @Override
@@ -45,7 +53,12 @@ public class ThreadAdapter extends RecyclerView.Adapter<ThreadAdapter.ViewHolder
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         final ThreadClass instructor = threadResults.get(position);
+        User user = new User();
         holder.messageName.setText(instructor.getTitle());
+        user = getUser();
+        if(user.getUser_id().equalsIgnoreCase(instructor.getUser_id())){
+            holder.removeButton.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -68,16 +81,29 @@ public class ThreadAdapter extends RecyclerView.Adapter<ThreadAdapter.ViewHolder
                 }
             });
             messageName = (TextView) itemView.findViewById(R.id.threadName);
-            removeButton = (Button) itemView.findViewById(R.id.remove);
+            removeButton = (Button) itemView.findViewById(R.id.deleteAction);
+            removeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    pos = getAdapterPosition();
+                    ThreadClass userNew = threadResults.get(pos);
+                    threadResults.remove(pos);
+                    deleteThread.deletedThreadRefresh(threadResults, userNew.getThread_id());
+                }
+            });
+            removeButton.setFocusable(false);
         }
     }
 
-    public String getToken(){
+    public User getUser(){
         SharedPreferences preferences = context.getSharedPreferences("Hello",context.MODE_PRIVATE);
         Gson gson = new Gson();
         String json = preferences.getString("user", null);
         Type type = new TypeToken<User>() {}.getType();
         User user = gson.fromJson(json, type);
-        return user.getToken();
+        return user;
+    }
+    interface IDeleteThread{
+        void deletedThreadRefresh(ArrayList<ThreadClass> threads, String threadId);
     }
 }

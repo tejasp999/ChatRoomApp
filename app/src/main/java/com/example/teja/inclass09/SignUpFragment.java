@@ -1,3 +1,8 @@
+/*Assignment Inclass09
+Yash Ghia
+Prabhakar Teja Seeda
+*/
+
 package com.example.teja.inclass09;
 
 
@@ -5,6 +10,9 @@ import android.app.Fragment;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,21 +71,30 @@ public class SignUpFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if(password.getText().toString().equals(conpassword.getText().toString())) {
-                    client = new OkHttpClient();
+                    OkHttpClient client1 = new OkHttpClient();
 
+                    Log.d("email",email.getText().toString());
+                    Log.d("password",password.getText().toString());
+                    Log.d("fname", fname.getText().toString());
+                    Log.d("lname",lname.getText().toString());
+
+                    Log.d("enter signup method","password same");
                     RequestBody formBody = new FormBody.Builder()
                             .add("email", email.getText().toString())
                             .add("password", password.getText().toString())
                             .add("fname", fname.getText().toString())
                             .add("lname", lname.getText().toString())
                             .build();
+                    Log.d("formbody",""+formBody.toString());
 
                     Request request = new Request.Builder()
                             .url("http://ec2-54-164-74-55.compute-1.amazonaws.com/api/signup")
                             .post(formBody)
                             .build();
 
-                    client.newCall(request).enqueue(new Callback() {
+                    Log.d("request",""+request.body().toString());
+
+                    client1.newCall(request).enqueue(new Callback() {
                         @Override
                         public void onFailure(Call call, IOException e) {
                             e.printStackTrace();
@@ -88,12 +105,11 @@ public class SignUpFragment extends Fragment {
                                 throw new IOException("Unexpected code " + response);
                             }
                             try {
-                                user = parseUser(response.body().toString());
+                                user = parseUser(response.body().string());
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
                             if(user.getStatus().equalsIgnoreCase("ok")){
-                                Toast.makeText(getActivity(),"Sign up Successful",Toast.LENGTH_LONG).show();
                                 SharedPreferences preferences = getActivity().getSharedPreferences("Hello",getActivity().MODE_PRIVATE);
                                 Gson gsonNew = new Gson();
                                 SharedPreferences.Editor prefEditor = preferences.edit();
@@ -101,9 +117,25 @@ public class SignUpFragment extends Fragment {
                                 prefEditor.putString("user",json2);
                                 prefEditor.commit();
                                 getFragmentManager().beginTransaction().replace(R.id.container,new MessageThreadFragment()).commit();
+
+                                //Toast.makeText(getActivity(),"Sign up Successful",Toast.LENGTH_LONG).show();
+
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        toastSuccessful();
+                                    }
+                                });
+
                             }
                             else {
-                                Toast.makeText(getActivity(),"Sign up not successful- Status response is: "+user.getStatus(),Toast.LENGTH_LONG).show();
+                                //Toast.makeText(getActivity(),"Sign up not successful- Status response is: "+user.getStatus(),Toast.LENGTH_LONG).show();
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        toastUnSuccessful();
+                                    }
+                                });
                             }
                         }
                     });
@@ -139,5 +171,14 @@ public class SignUpFragment extends Fragment {
         }
         return user;
     }
+
+    private void toastSuccessful(){
+        Toast.makeText(getActivity(),"Sign up Successful",Toast.LENGTH_LONG).show();
+    }
+    private void toastUnSuccessful(){
+        Toast.makeText(getActivity(),"Sign up not successful- Status response is: "+user.getStatus(),Toast.LENGTH_LONG).show();
+    }
+
+
 
 }

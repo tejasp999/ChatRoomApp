@@ -26,7 +26,7 @@
                 android:textSize="24sp" />
 
             <Button
-                android:id="@+id/remove"
+                android:id="@+id/deleteAction"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_alignBottom="@+id/threadName"

@@ -1,5 +1,12 @@
+/*Assignment Inclass09
+Yash Ghia
+Prabhakar Teja Seeda
+*/
+
 package com.example.teja.inclass09;
 
+
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -28,6 +35,7 @@ import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -40,12 +48,13 @@ import okhttp3.ResponseBody;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class MessageThreadFragment extends Fragment implements ThreadClass.ThreadSelector{
+public class MessageThreadFragment extends Fragment implements ThreadClass.ThreadSelector, ThreadAdapter.IDeleteThread {
     RecyclerView messageList ;
     String newThread;
     Request request;
     OkHttpClient client;
     String addThreadUrl = "http://ec2-54-164-74-55.compute-1.amazonaws.com/api/thread/add";
+    String deleteThreadUrl = "http://ec2-54-164-74-55.compute-1.amazonaws.com/api/thread/delete/";
     static ThreadAdapter threadAdapter;
     MainActivity activity;
     static private RecyclerView.LayoutManager mLayoutManager;
@@ -67,21 +76,25 @@ public class MessageThreadFragment extends Fragment implements ThreadClass.Threa
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         reloadThreads();
+        getView().findViewById(R.id.logoutButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                storeSharedPreferences(new User());
+                getFragmentManager().beginTransaction().replace(R.id.container,new LoginFragment(),"login").commit();
+            }
+        });
         getView().findViewById(R.id.addThread).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 newThread = ((EditText) getView().findViewById(R.id.newthread)).getText().toString();
-                if(!newThread.isEmpty()) {
-                    RequestBody requestBody = new MultipartBody.Builder()
-                            .setType(MultipartBody.FORM)
-                            .addFormDataPart("title", newThread)
+                if (newThread.length() > 0) {
+                    RequestBody requestBody = new FormBody.Builder()
+                            .add("title", newThread)
                             .build();
 
                     request = new Request.Builder()
                             .url(addThreadUrl)
                             .header("Authorization", "BEARER " + getToken())
-                            .method("POST", RequestBody.create(null, new byte[0]))
                             .post(requestBody)
                             .build();
                     client.newCall(request).enqueue(new Callback() {
@@ -92,19 +105,25 @@ public class MessageThreadFragment extends Fragment implements ThreadClass.Threa
 
                         @Override
                         public void onResponse(Call call, Response response) throws IOException {
-                            try (ResponseBody responseBody = response.body()) {
-                                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-                                reloadThreads();
+                            if (!response.isSuccessful()) {
+                                throw new IOException("Unexpected code " + response);
                             }
+                            reloadThreads();
                         }
                     });
-                }
-                else{
-                    Toast.makeText(getActivity(),"Enter the thread name",Toast.LENGTH_LONG).show();
                 }
             }
         });
 
+    }
+
+    public void storeSharedPreferences(User userDetails) {
+        SharedPreferences preferences = getActivity().getSharedPreferences("Hello", Context.MODE_PRIVATE);
+        Gson gsonNew = new Gson();
+        SharedPreferences.Editor prefEditor = preferences.edit();
+        String json2 = gsonNew.toJson(userDetails);
+        prefEditor.putString("user",json2);
+        prefEditor.commit();
     }
     public String getToken(){
         SharedPreferences preferences = getActivity().getSharedPreferences("Hello",getActivity().MODE_PRIVATE);
@@ -164,7 +183,7 @@ public class MessageThreadFragment extends Fragment implements ThreadClass.Threa
                             messageList = (RecyclerView) getView().findViewById(R.id.messageView);
                             mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
                             messageList.setLayoutManager(mLayoutManager);
-                            threadAdapter = new ThreadAdapter(threadResults, getActivity(), MessageThreadFragment.this);
+                            threadAdapter = new ThreadAdapter(threadResults, getActivity(), MessageThreadFragment.this, MessageThreadFragment.this);
                             messageList.setAdapter(threadAdapter);
                             threadAdapter.notifyDataSetChanged();
                         }
@@ -175,5 +194,33 @@ public class MessageThreadFragment extends Fragment implements ThreadClass.Threa
                 }
             }
         });
+    }
+    @Override
+    public void deletedThreadRefresh(ArrayList<ThreadClass> threads, String threadId) {
+        Log.d("Before delete from api","size"+threads.size());
+        client = new OkHttpClient();
+        deleteThreadUrl = deleteThreadUrl+threadId;
+        String bearer = "BEARER "+getToken();
+        Request request = new Request.Builder()
+                .url(deleteThreadUrl)
+                .header("Authorization", bearer)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override public void onResponse(Call call, Response response) throws IOException {
+                try (ResponseBody responseBody = response.body()) {
+                    if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+                    Headers responseHeaders = response.headers();
+                    for (int i = 0, size = responseHeaders.size(); i < size; i++) {
+                        System.out.println(responseHeaders.name(i) + ": " + responseHeaders.value(i));
+                    }
+                }
+            }
+        });
+        reloadThreads();
     }
 }

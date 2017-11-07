@@ -1,3 +1,8 @@
+/*Assignment Inclass09
+Yash Ghia
+Prabhakar Teja Seeda
+*/
+
 package com.example.teja.inclass09;
 
 
@@ -132,7 +137,8 @@ public class LoginFragment extends Fragment {
             user.setToken(rootObject.getString("token"));
             user.setUser_id(rootObject.getString("user_id"));
             user.setUser_email(rootObject.getString("user_email"));
-            user.setUser_fname(rootObject.getString("user_lname"));
+            user.setUser_fname(rootObject.getString("user_fname"));
+            user.setUser_lname(rootObject.getString("user_lname"));
             user.setUser_role(rootObject.getString("user_role"));
         }
         return user;

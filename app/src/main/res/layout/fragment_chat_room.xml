@@ -20,7 +20,7 @@
         android:textSize="18sp" />
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/chatroom"
+        android:id="@+id/chatRoom"
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:layout_alignParentStart="true"
@@ -33,7 +33,7 @@
         android:layout_height="40dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
-        android:src="@drawable/home" />
+        android:src="@mipmap/home" />
 
     <EditText
         android:id="@+id/sendmessage"
@@ -51,7 +51,7 @@
         android:layout_height="40dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:src="@drawable/send" />
+        android:src="@mipmap/send" />
 
 </RelativeLayout>
 </FrameLayout>
