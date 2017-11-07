@@ -59,12 +59,12 @@ public class ThreadAdapter extends RecyclerView.Adapter<ThreadAdapter.ViewHolder
         ThreadClass threadClass;
         public ViewHolder(final View itemView) {
             super(itemView);
-            int i = getAdapterPosition();
-            threadClass = threadResults.get(i);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    fragment.getFragmentManager().beginTransaction().replace(R.id.container,new ChatRoomFragment(threadClass.thread_id,threadClass.getTitle()));
+                    int i = getAdapterPosition();
+                    threadClass = threadResults.get(i);
+                    fragment.getFragmentManager().beginTransaction().replace(R.id.container,new ChatRoomFragment(threadClass.thread_id,threadClass.getTitle())).commit();
                 }
             });
             messageName = (TextView) itemView.findViewById(R.id.threadName);

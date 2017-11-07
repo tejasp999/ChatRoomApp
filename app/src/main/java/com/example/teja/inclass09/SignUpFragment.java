@@ -18,6 +18,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -36,7 +39,7 @@ public class SignUpFragment extends Fragment {
     EditText password;
     EditText conpassword;
     private OkHttpClient client;
-    User user = new User();
+    User user;
     public SignUpFragment() {
         // Required empty public constructor
     }
@@ -49,6 +52,7 @@ public class SignUpFragment extends Fragment {
         email = (EditText)getView().findViewById(R.id.email);
         password = (EditText)getView().findViewById(R.id.password);
         conpassword = (EditText)getView().findViewById(R.id.conpassword);
+        user = new User();
         getView().findViewById(R.id.cancel).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,44 +65,48 @@ public class SignUpFragment extends Fragment {
                 if(password.getText().toString().equals(conpassword.getText().toString())) {
                     client = new OkHttpClient();
 
-                    RequestBody requestBody = new MultipartBody.Builder()
-                            .setType(MultipartBody.FORM)
-                            .addFormDataPart("email", email.getText().toString())
-                            .addFormDataPart("password", password.getText().toString())
-                            .addFormDataPart("fname", fname.getText().toString())
-                            .addFormDataPart("lname", lname.getText().toString())
+                    RequestBody formBody = new FormBody.Builder()
+                            .add("email", email.getText().toString())
+                            .add("password", password.getText().toString())
+                            .add("fname", fname.getText().toString())
+                            .add("lname", lname.getText().toString())
                             .build();
-
 
                     Request request = new Request.Builder()
                             .url("http://ec2-54-164-74-55.compute-1.amazonaws.com/api/signup")
-                            .method("POST", RequestBody.create(null, new byte[0]))
-                            .post(requestBody)
+                            .post(formBody)
                             .build();
 
-                    try (Response response = client.newCall(request).execute()) {
-                        if (!response.isSuccessful()) {
-                            throw new IOException("Unexpected code " + response);
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            e.printStackTrace();
                         }
-                        user = parseUser(request.body().toString());
-                        if(user.getStatus().equalsIgnoreCase("ok")){
-                            Toast.makeText(getActivity(),"Sign up Successful",Toast.LENGTH_LONG).show();
-                            SharedPreferences preferences = getActivity().getSharedPreferences("Hello",getActivity().MODE_PRIVATE);
-                            Gson gsonNew = new Gson();
-                            SharedPreferences.Editor prefEditor = preferences.edit();
-                            String json2 = gsonNew.toJson(user);
-                            prefEditor.putString("user",json2);
-                            prefEditor.commit();
-                            getFragmentManager().beginTransaction().replace(R.id.container,new MessageThreadFragment()).commit();
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                throw new IOException("Unexpected code " + response);
+                            }
+                            try {
+                                user = parseUser(response.body().toString());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            if(user.getStatus().equalsIgnoreCase("ok")){
+                                Toast.makeText(getActivity(),"Sign up Successful",Toast.LENGTH_LONG).show();
+                                SharedPreferences preferences = getActivity().getSharedPreferences("Hello",getActivity().MODE_PRIVATE);
+                                Gson gsonNew = new Gson();
+                                SharedPreferences.Editor prefEditor = preferences.edit();
+                                String json2 = gsonNew.toJson(user);
+                                prefEditor.putString("user",json2);
+                                prefEditor.commit();
+                                getFragmentManager().beginTransaction().replace(R.id.container,new MessageThreadFragment()).commit();
+                            }
+                            else {
+                                Toast.makeText(getActivity(),"Sign up not successful- Status response is: "+user.getStatus(),Toast.LENGTH_LONG).show();
+                            }
                         }
-                        else {
-                            Toast.makeText(getActivity(),"Sign up not successful- Status response is: "+user.getStatus(),Toast.LENGTH_LONG).show();
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    });
                 }
                 else {
                     Toast.makeText(getActivity(),"Password does not match",Toast.LENGTH_LONG).show();
@@ -119,7 +127,7 @@ public class SignUpFragment extends Fragment {
         User user = new User();
         JSONObject rootObject = new JSONObject(in);
         if(rootObject.getString("status").equalsIgnoreCase("error")){
-            Toast.makeText(getActivity(),"Error message: "+rootObject.getString("message"),Toast.LENGTH_LONG);
+            user.setStatus(rootObject.getString("status"));
         }
         else {
             user.setStatus(rootObject.getString("status"));

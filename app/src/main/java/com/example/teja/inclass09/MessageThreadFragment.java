@@ -70,27 +70,38 @@ public class MessageThreadFragment extends Fragment implements ThreadClass.Threa
         getView().findViewById(R.id.addThread).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 newThread = ((EditText) getView().findViewById(R.id.newthread)).getText().toString();
+                if(!newThread.isEmpty()) {
+                    RequestBody requestBody = new MultipartBody.Builder()
+                            .setType(MultipartBody.FORM)
+                            .addFormDataPart("title", newThread)
+                            .build();
 
-                RequestBody requestBody = new MultipartBody.Builder()
-                        .setType(MultipartBody.FORM)
-                        .addFormDataPart("title", newThread)
-                        .build();
+                    request = new Request.Builder()
+                            .url(addThreadUrl)
+                            .header("Authorization", "BEARER " + getToken())
+                            .method("POST", RequestBody.create(null, new byte[0]))
+                            .post(requestBody)
+                            .build();
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            e.printStackTrace();
+                        }
 
-                request = new Request.Builder()
-                        .url(addThreadUrl)
-                        .header("Authorization", "BEARER " + getToken())
-                        .method("POST", RequestBody.create(null, new byte[0]))
-                        .post(requestBody)
-                        .build();
-                try (Response response = client.newCall(request).execute()) {
-                    if (!response.isSuccessful()) {
-                        throw new IOException("Unexpected code " + response);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            try (ResponseBody responseBody = response.body()) {
+                                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+                                reloadThreads();
+                            }
+                        }
+                    });
                 }
-                reloadThreads();
+                else{
+                    Toast.makeText(getActivity(),"Enter the thread name",Toast.LENGTH_LONG).show();
+                }
             }
         });
 

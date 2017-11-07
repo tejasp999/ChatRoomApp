@@ -26,6 +26,9 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -55,7 +58,6 @@ public class ChatRoomFragment extends Fragment implements MessageAdapter.Idelete
     public ChatRoomFragment(String threadid, String threadName) {
         this.threadid = threadid;
         this.threadName = threadName;
-        // Required empty public constructor
     }
 
     @Override
@@ -91,18 +93,17 @@ public class ChatRoomFragment extends Fragment implements MessageAdapter.Idelete
                 public void onClick(View v) {
                     newMessage = ((EditText) getView().findViewById(R.id.message)).getText().toString();
 
-                    RequestBody requestBody = new MultipartBody.Builder()
-                            .setType(MultipartBody.FORM)
-                            .addFormDataPart("message", newMessage)
-                            .addFormDataPart("thread_id", threadid)
+                    RequestBody formBody = new FormBody.Builder()
+                            .add("message", newMessage)
+                            .add("thread_id", threadid)
                             .build();
 
                     request = new Request.Builder()
                             .url("http://ec2-54-164-74-55.compute-1.amazonaws.com/api/message/add")
                             .header("Authorization", "BEARER " + user.getToken())
-                            .method("POST", RequestBody.create(null, new byte[0]))
-                            .post(requestBody)
+                            .post(formBody)
                             .build();
+
                     try (Response response = client.newCall(request).execute()) {
                         if (!response.isSuccessful()) {
                             throw new IOException("Unexpected code " + response);
@@ -114,20 +115,27 @@ public class ChatRoomFragment extends Fragment implements MessageAdapter.Idelete
                             .url("http://ec2-54-164-74-55.compute-1.amazonaws.com/api/messages/" + threadid)
                             .header("Authorization", "BEARER " + user.getToken())
                             .build();
-                    try (Response response = client.newCall(request).execute()) {
-                        if (!response.isSuccessful()) {
-                            throw new IOException("Unexpected code " + response);
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            e.printStackTrace();
                         }
-                        messages = parseMessage(response.body().toString());
-                        messageAdapter = new MessageAdapter(messages, ChatRoomFragment.this, ChatRoomFragment.this);
-                        messagesViewList.setAdapter(messageAdapter);
-                        messageAdapter.notifyDataSetChanged();
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                throw new IOException("Unexpected code " + response);
+                            }
+                            try {
+                                messages = parseMessage(response.body().toString());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            messageAdapter = new MessageAdapter(messages, ChatRoomFragment.this, ChatRoomFragment.this);
+                            messagesViewList.setAdapter(messageAdapter);
+                            messageAdapter.notifyDataSetChanged();
+                        }
+                    });
                 }
                 });
         } catch (IOException e) {
